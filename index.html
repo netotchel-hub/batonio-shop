@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BATONIO - Магазин выпечки и заморозки</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Шапка -->
+        <header class="header">
+            <div class="shop-name" id="shopName">BATONIO</div>
+            <div class="delivery-info" id="deliveryInfo">Доставка завтра с 17:00</div>
+        </header>
+
+        <!-- КАТЕГОРИИ ТОВАРОВ -->
+        <div class="categories" id="categoriesContainer">
+            <button class="category-btn active" onclick="filterProducts('все')">Все</button>
+            <button class="category-btn" onclick="filterProducts('выпечка')">Выпечка</button>
+            <button class="category-btn" onclick="filterProducts('заморозка')">Заморозка</button>
+        </div>
+
+        <!-- ТОВАРЫ -->
+        <main class="products-grid" id="productsContainer">
+            <!-- Товары загружаются сюда -->
+        </main>
+
+        <!-- КНОПКА КОРЗИНЫ -->
+        <div class="cart-fab" id="cartFab">
+            🛒 <span id="cartCount">0</span>
+        </div>
+
+        <!-- ОКНО ТОВАРА -->
+        <div class="modal" id="productModal">
+            <div class="modal-content">
+                <button class="close-modal" onclick="closeModal('productModal')">×</button>
+                <img id="modalImage" src="" alt="" class="modal-image">
+                <h2 id="modalName"></h2>
+                <p class="modal-weight" id="modalWeight"></p>
+                <p class="modal-composition" id="modalComposition"></p>
+                <p class="modal-price" id="modalPrice"></p>
+                
+                <div class="quantity-selector">
+                    <button class="qty-btn" onclick="changeQuantity(-1)">-</button>
+                    <span id="currentQty">1</span>
+                    <button class="qty-btn" onclick="changeQuantity(1)">+</button>
+                </div>
+                <button class="add-to-cart-btn" onclick="addToCart()">Добавить в корзину</button>
+            </div>
+        </div>
+
+        <!-- КОРЗИНА -->
+        <div class="modal" id="cartModal">
+            <div class="modal-content cart-modal">
+                <button class="close-modal" onclick="closeModal('cartModal')">×</button>
+                <h2>Ваш заказ</h2>
+                <div id="cartItems">
+                    <!-- Товары в корзине -->
+                </div>
+                <div class="cart-total">
+                    Итого: <span id="cartTotal">0</span> руб
+                </div>
+                <button class="checkout-btn" onclick="openOrderForm()">Оформить заказ</button>
+            </div>
+        </div>
+
+        <!-- ФОРМА ЗАКАЗА -->
+        <div class="modal" id="orderFormModal">
+            <div class="modal-content order-form">
+                <button class="close-modal" onclick="closeModal('orderFormModal')">×</button>
+                <h2>Оформление заказа</h2>
+                
+                <div class="form-group">
+                    <label>Город</label>
+                    <input type="text" id="city" value="Медвежьегорск" readonly>
+                </div>
+                
+                <div class="form-group">
+                    <label>Улица *</label>
+                    <input type="text" id="street" required placeholder="Введите улицу">
+                </div>
+                
+                <div class="form-group">
+                    <label>Дом *</label>
+                    <input type="text" id="house" required placeholder="Введите номер дома">
+                </div>
+                
+                <div class="form-group">
+                    <label>Квартира *</label>
+                    <input type="text" id="apartment" required placeholder="Введите номер квартиры">
+                </div>
+                
+                <div class="form-group">
+                    <label>Имя *</label>
+                    <input type="text" id="customerName" required placeholder="Введите ваше имя">
+                </div>
+                
+                <div class="form-group">
+                    <label>Телефон *</label>
+                    <input type="tel" id="phone" required placeholder="+7 (999) 123-45-67">
+                </div>
+                
+                <div class="form-group">
+                    <label>Комментарий к заказу</label>
+                    <textarea id="comment" rows="3" placeholder="Дополнительные пожелания к заказу..."></textarea>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="rememberMe">
+                    <label for="rememberMe">Запомнить мои данные</label>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="agreement" required>
+                    <label for="agreement" id="agreementText">
+                        Я понимаю, что заказывая сейчас, заказ будет доставлен завтра с 17:00
+                    </label>
+                </div>
+                
+                <button class="submit-order-btn" onclick="submitOrder()">Перейти к оплате</button>
+            </div>
+        </div>
+
+        <!-- ОПЛАТА -->
+        <div class="modal" id="paymentModal">
+            <div class="modal-content payment-modal">
+                <button class="close-modal" onclick="closeModal('paymentModal')">×</button>
+                <h2>Оплата заказа</h2>
+                <p>Сумма к оплате: <strong id="paymentAmount">0</strong> руб</p>
+                
+                <div class="payment-mock">
+                    <div class="card-input">
+                        <input type="text" placeholder="Номер карты" value="4242 4242 4242 4242" readonly>
+                    </div>
+                    <div class="card-input">
+                        <input type="text" placeholder="Срок действия" value="12/25" readonly>
+                    </div>
+                    <div class="card-input">
+                        <input type="text" placeholder="CVV" value="123" readonly>
+                    </div>
+                </div>
+                
+                <button class="pay-btn" onclick="processPayment()">Оплатить</button>
+                <button class="back-btn" onclick="goBackToForm()">Назад</button>
+            </div>
+        </div>
+
+        <!-- УСПЕШНЫЙ ЗАКАЗ -->
+        <div class="modal" id="successModal">
+            <div class="modal-content success-modal">
+                <div class="success-icon">✓</div>
+                <h2>Благодарю за заказ!</h2>
+                <p>Увидимся завтра с 17:00</p>
+                <button class="close-success-btn" onclick="closeModal('successModal')">Закрыть</button>
+            </div>
+        </div>
+
+        <!-- НЕРАБОЧЕЕ ВРЕМЯ -->
+        <div class="non-working-overlay" id="nonWorkingOverlay">
+            <div class="non-working-message">
+                <h3>⏰ Магазин не работает</h3>
+                <p>Прием заказов с 00:30 до 04:30</p>
+                <p>Возвращайтесь после 4:30</p>
+            </div>
+        </div>
+
+        <!-- АДМИН-ПАНЕЛЬ (СКРЫТА ДЛЯ ОБЫЧНЫХ ПОЛЬЗОВАТЕЛЕЙ) -->
+        <div id="adminPanel" style="display: none; position: fixed; top: 20px; right: 20px; z-index: 9999; background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); border: 2px solid #E27D60;">
+            <h3 style="margin-bottom: 10px; color: #E27D60;">Админ-панель</h3>
+            
+            <div style="margin-bottom: 10px;">
+                <label style="display: block; margin-bottom: 5px; font-size: 12px;">Статус магазина:</label>
+                <div id="shopStatus" style="padding: 5px 10px; background: #ff4757; color: white; border-radius: 4px; font-weight: bold;">
+                    ЗАКРЫТ
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <button onclick="adminForceOpenShop()" style="flex: 1; background: #4CAF50; color: white; border: none; padding: 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                    🔓 Открыть
+                </button>
+                <button onclick="adminForceCloseShop()" style="flex: 1; background: #ff4757; color: white; border: none; padding: 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">
+                    🔒 Закрыть
+                </button>
+            </div>
+            
+            <div>
+                <button onclick="hideAdminPanel()" style="width: 100%; background: #666; color: white; border: none; padding: 6px; border-radius: 4px; font-size: 11px; cursor: pointer;">
+                    Скрыть панель
+                </button>
+            </div>
+        </div>
+
+        <!-- АДМИН-ТРИГГЕР (СЕКРЕТНАЯ КНОПКА ДЛЯ ВХОДА) -->
+        <div id="adminTrigger" style="position: fixed; top: 10px; right: 10px; z-index: 9998; opacity: 0.1; transition: opacity 0.3s;">
+            <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: #E27D60; color: white; border-radius: 50%; font-size: 20px; cursor: pointer;">
+                ⚙️
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    
+    <script>
+    // АДМИН-ФУНКЦИИ (ТОЛЬКО В ЭТОМ ФАЙЛЕ)
+    let adminAccess = false;
+    const ADMIN_PASSWORD = 'batonio2024'; // Ваш пароль
+    
+    // Показать админ-триггер при двойном клике
+    document.addEventListener('dblclick', function(e) {
+        if (e.clientX > window.innerWidth - 100 && e.clientY < 100) {
+            const trigger = document.getElementById('adminTrigger');
+            trigger.style.opacity = '1';
+            setTimeout(() => {
+                trigger.style.opacity = '0.1';
+            }, 3000);
+        }
+    });
+    
+    // Обработчик клика на админ-триггер
+    document.getElementById('adminTrigger').onclick = function() {
+        if (!adminAccess) {
+            const password = prompt('Введите админ-пароль:');
+            if (password === ADMIN_PASSWORD) {
+                adminAccess = true;
+                showAdminPanel();
+            } else {
+                alert('Неверный пароль');
+            }
+        } else {
+            showAdminPanel();
+        }
+    };
+    
+    function showAdminPanel() {
+        document.getElementById('adminPanel').style.display = 'block';
+        updateAdminStatus();
+    }
+    
+    function hideAdminPanel() {
+        document.getElementById('adminPanel').style.display = 'none';
+    }
+    
+    function updateAdminStatus() {
+        const statusElement = document.getElementById('shopStatus');
+        if (window.state && window.state.isWorkingTime) {
+            statusElement.textContent = 'ОТКРЫТ';
+            statusElement.style.background = '#4CAF50';
+        } else {
+            statusElement.textContent = 'ЗАКРЫТ';
+            statusElement.style.background = '#ff4757';
+        }
+    }
+    
+    function adminForceOpenShop() {
+        if (!adminAccess) {
+            alert('Требуется авторизация');
+            return;
+        }
+        if (typeof forceOpenShop === 'function') {
+            forceOpenShop();
+            updateAdminStatus();
+            alert('Магазин принудительно открыт');
+        }
+    }
+    
+    function adminForceCloseShop() {
+        if (!adminAccess) {
+            alert('Требуется авторизация');
+            return;
+        }
+        if (typeof forceCloseShop === 'function') {
+            forceCloseShop();
+            updateAdminStatus();
+            alert('Магазин принудительно закрыт');
+        }
+    }
+    
+    // Обновляем статус каждые 5 секунд
+    setInterval(updateAdminStatus, 5000);
+    </script>
+</body>
+</html>
