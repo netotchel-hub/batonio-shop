@@ -1,6 +1,5 @@
 // ==================== КОНФИГУРАЦИЯ ====================
 const API_URL = 'https://script.google.com/macros/s/AKfycbwB5x3RVM_qjR1Re4KNbRkuSZGLxGjnefL7plvmmp6H4ijqBcyuCE8TyDTanEXKaonHFw/exec';
-
 // ==================== СОСТОЯНИЕ ПРИЛОЖЕНИЯ ====================
 let state = {
     products: [],
