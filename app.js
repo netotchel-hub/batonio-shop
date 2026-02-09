@@ -1,8 +1,7 @@
-// Конфигурация
+// Конфигурация 
 const CONFIG = {
     API_URL: 'https://script.google.com/macros/s/AKfycbyLxHdNHF96ufwl7uw0an4XjeYBljOpqitLe_g6lAgGKSF6nU-8PBMlTgyuNgq3Z0VwlA/dev'
 };
-
 // Состояние приложения
 let state = {
     shopData: null,
