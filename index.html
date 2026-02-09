@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BATONIO - Доставка выпечки и заморозки</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Шапка -->
+        <header class="header">
+            <h1 id="shop-name">BATONIO</h1>
+            <div id="delivery-info">Загрузка...</div>
+            <div id="shop-status" class="shop-status"></div>
+        </header>
+
+        <!-- Категории -->
+        <div class="categories-container" id="categories-container">
+            <div class="categories-scroll" id="categories-scroll">
+                <!-- Кнопки категорий появятся здесь -->
+            </div>
+        </div>
+
+        <!-- Контейнер товаров с фоном -->
+        <div class="products-section" id="products-section">
+            <div class="products-container">
+                <div id="products-grid" class="products-grid">
+                    <!-- Товары загрузятся здесь -->
+                    <div class="loading">Загрузка товаров...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Корзина -->
+        <div class="cart-container" id="cart-container">
+            <div class="cart-header">
+                <h3>🛒 Корзина</h3>
+                <div class="cart-total">
+                    <span id="cart-count">0</span> товаров • 
+                    <span id="cart-total">0 руб.</span>
+                </div>
+            </div>
+            <div id="cart-items" class="cart-items">
+                <div class="empty-cart">Корзина пуста</div>
+            </div>
+            <div class="cart-actions">
+                <button id="clear-cart" class="btn-secondary">Очистить</button>
+                <button id="checkout-btn" class="btn-primary" disabled>Оформить заказ</button>
+            </div>
+        </div>
+
+        <!-- Модальное окно товара -->
+        <div id="product-modal" class="modal hidden">
+            <div class="modal-content product-modal-content">
+                <button class="close-modal" id="close-product-modal">×</button>
+                <img id="modal-product-image" src="" alt="" class="modal-product-image">
+                <div class="modal-product-info">
+                    <h2 id="modal-product-name"></h2>
+                    <div class="product-details">
+                        <div class="detail"><strong>Вес:</strong> <span id="modal-product-weight"></span></div>
+                        <div class="detail"><strong>Состав:</strong> <span id="modal-product-composition"></span></div>
+                        <div class="detail"><strong>Цена:</strong> <span id="modal-product-price"></span> руб.</div>
+                        <div class="detail"><strong>Макс. заказ:</strong> <span id="modal-product-max"></span> шт.</div>
+                    </div>
+                    <div class="product-quantity-controls">
+                        <button class="quantity-btn" id="decrease-qty">−</button>
+                        <span id="product-quantity" class="quantity-value">1</span>
+                        <button class="quantity-btn" id="increase-qty">+</button>
+                    </div>
+                    <button id="add-to-cart-modal" class="btn-primary">Добавить в корзину</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно оформления -->
+        <div id="checkout-modal" class="modal hidden">
+            <div class="modal-content checkout-modal-content">
+                <h2>Оформление заказа</h2>
+                <form id="delivery-form">
+                    <div class="form-group">
+                        <label>Ваше имя *</label>
+                        <input type="text" id="customer-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Телефон *</label>
+                        <input type="tel" id="phone" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Город</label>
+                        <select id="city">
+                            <option value="Медвежьегорск">Медвежьегорск</option>
+                        </select>
+                    </div>
+                    <div class="form-group two-columns">
+                        <div>
+                            <label>Улица *</label>
+                            <input type="text" id="street" required>
+                        </div>
+                        <div>
+                            <label>Дом *</label>
+                            <input type="text" id="house" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Квартира / Офис</label>
+                        <input type="text" id="apartment">
+                    </div>
+                    <div class="form-group">
+                        <label>Комментарий к заказу</label>
+                        <textarea id="comment" rows="2" placeholder="Домофон, этаж, код, etc."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="remember-me">
+                            <span>Запомнить мои данные</span>
+                        </label>
+                    </div>
+                    <div class="form-group terms-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="agree-terms" required>
+                            <span id="terms-text">Загрузка условий...</span>
+                        </label>
+                    </div>
+                    <div class="order-summary">
+                        <h3>Итого: <span id="modal-total">0</span> руб.</h3>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" id="cancel-order" class="btn-secondary">Отмена</button>
+                        <button type="submit" id="submit-order" class="btn-primary">Оплатить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Модальное окно оплаты -->
+        <div id="payment-modal" class="modal hidden">
+            <div class="modal-content payment-content">
+                <div class="payment-header">
+                    <h2>Оплата заказа</h2>
+                </div>
+                <div class="payment-loader">
+                    <div class="spinner"></div>
+                    <p>Идет обработка платежа...</p>
+                </div>
+                <button id="confirm-payment" class="btn-primary hidden">Подтвердить оплату</button>
+            </div>
+        </div>
+
+        <!-- Модальное окно успеха -->
+        <div id="success-modal" class="modal hidden">
+            <div class="modal-content success-content">
+                <div class="success-icon">✓</div>
+                <h2>Заказ оформлен!</h2>
+                <p id="success-message">Благодарю за заказ!</p>
+                <button id="close-success" class="btn-primary">Отлично!</button>
+            </div>
+        </div>
+
+        <!-- Модальное окно ошибки -->
+        <div id="error-modal" class="modal hidden">
+            <div class="modal-content error-content">
+                <div class="error-icon">!</div>
+                <h2>Ошибка</h2>
+                <p id="error-message"></p>
+                <button id="close-error" class="btn-primary">Понятно</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
