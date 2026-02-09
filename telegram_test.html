@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Telegram API</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .result { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Тест Telegram Mini App</h1>
+    
+    <button onclick="testApi()">Тест API товаров</button>
+    <button onclick="testShopData()">Тест данных магазина</button>
+    <button onclick="testOrder()">Тест заказа</button>
+    
+    <div class="result" id="result">Результаты появятся здесь...</div>
+    
+    <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbz7XL5RH_8UHCbeKTq_1W3vOqaS4LnvqPDkFFn9OJ9Rdxz-RHb0IDvzixcjDeirbXzhGg/dev';
+    
+    function log(msg) {
+        document.getElementById('result').innerHTML += '<div>' + msg + '</div>';
+        console.log(msg);
+    }
+    
+    async function testApi() {
+        try {
+            log('🔄 Тестируем API товаров...');
+            const url = API_URL + '?action=getProducts';
+            log('URL: ' + url);
+            
+            const response = await fetch(url);
+            log('📦 Статус: ' + response.status);
+            
+            const data = await response.json();
+            log('✅ Ответ: ' + JSON.stringify(data).substring(0, 200) + '...');
+            log('📊 Товаров: ' + (data.products?.length || 0));
+            
+            if (data.products?.[0]) {
+                log('🎯 Первый товар: ' + data.products[0].name);
+            }
+        } catch (error) {
+            log('❌ Ошибка: ' + error.message);
+        }
+    }
+    
+    async function testShopData() {
+        try {
+            log('🔄 Тестируем данные магазина...');
+            const response = await fetch(API_URL + '?action=getShopData');
+            const data = await response.json();
+            log('✅ Магазин: ' + data.shopName);
+            log('📅 Доставка: ' + data.deliveryInfo);
+        } catch (error) {
+            log('❌ Ошибка: ' + error.message);
+        }
+    }
+    
+    async function testOrder() {
+        try {
+            log('🔄 Тестируем заказ...');
+            const testData = {
+                telegramUserId: 123456,
+                customerName: 'Тест',
+                phone: '+79123456789',
+                city: 'Медвежьегорск',
+                street: 'Тестовая',
+                house: '1',
+                apartment: '1',
+                cart: [{id: 1, name: 'Тест', price: 100, quantity: 1, total: 100}],
+                totalSum: 100,
+                agreeToTerms: true
+            };
+            
+            const url = API_URL + '?action=placeOrder&' + 
+                'telegramUserId=' + testData.telegramUserId +
+                '&customerName=' + encodeURIComponent(testData.customerName) +
+                '&phone=' + encodeURIComponent(testData.phone) +
+                '&city=' + encodeURIComponent(testData.city) +
+                '&street=' + encodeURIComponent(testData.street) +
+                '&house=' + encodeURIComponent(testData.house) +
+                '&cart=' + encodeURIComponent(JSON.stringify(testData.cart)) +
+                '&totalSum=' + testData.totalSum +
+                '&agreeToTerms=true';
+            
+            log('URL: ' + url.substring(0, 100) + '...');
+            
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.success) {
+                log('✅ Заказ успешен! ID: ' + data.orderId);
+            } else {
+                log('❌ Ошибка заказа: ' + data.error);
+            }
+        } catch (error) {
+            log('💥 Критическая ошибка: ' + error.message);
+        }
+    }
+    
+    // Авто-тест при загрузке
+    window.onload = function() {
+        log('🤖 Telegram Mini App загружен');
+        log('📱 Platform: ' + (window.Telegram?.WebApp?.platform || 'не определено'));
+        log('👤 User ID: ' + (window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'не доступен'));
+        
+        // Инициализируем Telegram
+        if (window.Telegram && Telegram.WebApp) {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.expand();
+            log('✅ Telegram WebApp инициализирован');
+        }
+    };
+    </script>
+</body>
+</html>
