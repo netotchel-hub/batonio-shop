@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BATONIO – Магазин выпечки</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Шапка магазина -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="shop-info">
+                    <h1 id="shopName">BATONIO</h1>
+                    <div class="delivery-time" id="deliveryInfo">
+                        <i class="fas fa-truck"></i>
+                        <span>Доставка завтра 17:00-20:00</span>
+                    </div>
+                </div>
+                <div class="cart-icon">
+                    <button id="cartBtn">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-badge" id="cartBadge">0</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Категории -->
+        <nav class="categories" id="categoriesNav">
+            <button class="category-btn active" data-category="all">Все товары</button>
+            <!-- Категории загрузятся сюда -->
+        </nav>
+
+        <!-- Товары -->
+        <main class="products-container" id="productsGrid">
+            <!-- Товары загрузятся сюда -->
+            <div class="loading">Загрузка товаров...</div>
+        </main>
+
+        <!-- Панель корзины -->
+        <footer class="cart-panel" id="cartPanel">
+            <div class="cart-summary">
+                <span class="cart-count" id="cartCount">0 товаров</span>
+                <span class="cart-total" id="cartTotal">0 ₽</span>
+            </div>
+            <button class="checkout-btn" id="checkoutBtn" disabled>
+                Оформить заказ
+            </button>
+        </footer>
+    </div>
+
+    <!-- Подключаем скрипты -->
+    <script src="app.js"></script>
+</body>
+</html>
