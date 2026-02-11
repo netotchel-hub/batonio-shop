@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fresh Food Market</title>
+    
+    <!-- Telegram Web App SDK (только для отправки данных) -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            min-height: 100vh;
+        }
+
+        .app {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Шапка с ТВОИМИ фонами */
+        .header {
+            padding: 28px 20px;
+            background-size: cover;
+            background-position: center;
+            color: white;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            background-color: #1a1a2e; /* fallback */
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.4));
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .welcome-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            color: white;
+        }
+
+        .welcome-text {
+            font-size: 17px;
+            opacity: 0.95;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            line-height: 1.4;
+            color: white;
+        }
+
+        /* Корзина сверху - НЕ В БОК, А ПО ЦЕНТРУ */
+        .cart-badge {
+            position: sticky;
+            top: 16px;
+            width: calc(100% - 40px);
+            margin: 0 auto;
+            margin-top: 16px;
+            background: white;
+            color: #1a1a2e;
+            padding: 14px 24px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 100;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .cart-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cart-icon {
+            font-size: 20px;
+        }
+
+        .cart-right {
+            background: #1a1a2e;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 15px;
+        }
+
+        /* Города доставки */
+        .cities-bar {
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            background: white;
+        }
+
+        .cities-container {
+            display: flex;
+            gap: 10px;
+        }
+
+        .city-btn {
+            padding: 10px 20px;
+            border-radius: 30px;
+            border: 1.5px solid #e0e0e0;
+            background: white;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #444;
+        }
+
+        .city-btn.active {
+            background: #1a1a2e;
+            color: white;
+            border-color: #1a1a2e;
+        }
+
+        /* Категории */
+        .categories-nav {
+            display: flex;
+            padding: 16px 20px;
+            gap: 12px;
+            border-bottom: 1px solid #f0f0f0;
+            background: white;
+        }
+
+        .category-tab {
+            flex: 1;
+            padding: 14px 8px;
+            border: none;
+            border-radius: 16px;
+            font-size: 16px;
+            font-weight: 600;
+            background: #f5f7fa;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .category-tab.active {
+            background: #1a1a2e;
+            color: white;
+            transform: scale(1.02);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        /* Товары - 2 в ряд */
+        .products-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 20px;
+            flex: 1;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.02);
+            border: 1px solid #f5f5f5;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-card:active {
+            transform: scale(0.98);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border-bottom: 1px solid #fafafa;
+        }
+
+        .product-info {
+            padding: 16px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .product-name {
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #1a1a2e;
+        }
+
+        .product-weight {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .product-description {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 16px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            flex: 1;
+        }
+
+        .product-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .product-price {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1a1a2e;
+        }
+
+        .add-btn {
+            background: #e94560;
+            color: white;
+            border: none;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 6px 14px rgba(233, 69, 96, 0.25);
+            font-weight: 500;
+        }
+
+        .add-btn:active {
+            transform: scale(0.85);
+        }
+
+        /* Корзина и чекбоксы - ПОЛНОСТЬЮ РАБОЧИЕ */
+        .cart-section {
+            padding: 20px;
+            border-top: 1px solid #f0f0f0;
+            background: white;
+            margin-top: auto;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.02);
+        }
+
+        .checkboxes {
+            margin-bottom: 20px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            font-size: 15px;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: #e94560;
+            border-radius: 6px;
+        }
+
+        .order-btn {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 18px;
+            background: #1a1a2e;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.5s ease, transform 0.2s;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            letter-spacing: 0.5px;
+        }
+
+        .order-btn:active {
+            transform: scale(0.97);
+        }
+
+        .order-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 50px 20px;
+            color: #888;
+            font-size: 17px;
+        }
+
+        @media (max-width: 480px) {
+            .products-grid {
+                gap: 12px;
+                padding: 16px;
+            }
+            
+            .product-image {
+                height: 140px;
+            }
+            
+            .product-name {
+                font-size: 16px;
+            }
+            
+            .product-price {
+                font-size: 18px;
+            }
+            
+            .add-btn {
+                width: 42px;
+                height: 42px;
+                font-size: 22px;
+            }
+            
+            .cart-badge {
+                width: calc(100% - 32px);
+                padding: 12px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <!-- Бейдж корзины - ПО ЦЕНТРУ, НЕ В БОКУ -->
+        <div class="cart-badge" id="cartBadge">
+            <div class="cart-left">
+                <span class="cart-icon">🛒</span>
+                <span id="cartCount">0</span> товаров
+            </div>
+            <div class="cart-right" id="cartTotalDisplay">
+                0 ₽
+            </div>
+        </div>
+
+        <!-- Шапка с ТВОИМИ фонами -->
+        <div class="header" id="header">
+            <div class="header-content">
+                <div class="welcome-title" id="welcomeTitle">Fresh Food Market</div>
+                <div class="welcome-text" id="welcomeText">Загружаем меню...</div>
+            </div>
+        </div>
+
+        <!-- Города доставки -->
+        <div class="cities-bar">
+            <div class="cities-container" id="citiesContainer"></div>
+        </div>
+
+        <!-- Категории -->
+        <div class="categories-nav" id="categoriesNav"></div>
+
+        <!-- Сетка товаров -->
+        <div id="productsContainer" class="products-grid"></div>
+
+        <!-- Корзина + чекбоксы - ПОЛНОСТЬЮ РАБОЧИЕ -->
+        <div class="cart-section">
+            <div class="checkboxes" id="checkboxesContainer"></div>
+            <button class="order-btn" id="orderBtn">Оформить заказ</button>
+        </div>
+    </div>
+
+    <script>
+        // ======================================
+        // ✅ TELEGRAM - ТОЛЬКО ДЛЯ ОТПРАВКИ ДАННЫХ
+        // ======================================
+        let tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+            tg.ready();
+        }
+
+        // ======================================
+        // ✅ ТВОИ ДАННЫЕ - ТВОИ ФОНЫ, ТВОИ ЦВЕТА
+        // ======================================
+        const SHEET_ID = '2PACX-1vQGKuyLy-Sd58N-lXLxuwbca28flmVviaW1hyUzKJtGeb2SVA43LUzige9kgo7qwfMlbSgS46zuozDT';
+        
+        const GIDS = {
+            categories: 0,
+            products: 430596501,
+            cities: 634714368,
+            checkboxes: 523008819,
+            appConfig: 1196520463
+        };
+
+        // CORS proxy для работы везде
+        const PROXY = 'https://corsproxy.io/?';
+
+        // Состояние приложения
+        let appState = {
+            categories: [],
+            products: [],
+            cities: [],
+            checkboxes: [],
+            config: {},
+            activeCategory: 1,
+            activeCity: '',
+            cart: []
+        };
+
+        // ========== ЗАГРУЗКА ДАННЫХ ==========
+        async function fetchSheet(gid) {
+            const url = `https://docs.google.com/spreadsheets/d/e/${SHEET_ID}/pub?gid=${gid}&single=true&output=csv`;
+            
+            try {
+                const response = await fetch(PROXY + encodeURIComponent(url));
+                const csv = await response.text();
+                
+                const lines = csv.split('\n').filter(line => line.trim());
+                if (lines.length === 0) return [];
+                
+                const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+                
+                return lines.slice(1).map(line => {
+                    const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+                    const obj = {};
+                    headers.forEach((header, i) => {
+                        obj[header] = values[i] || '';
+                    });
+                    return obj;
+                });
+            } catch (error) {
+                console.error(`Ошибка загрузки gid ${gid}:`, error);
+                return [];
+            }
+        }
+
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        async function initApp() {
+            try {
+                const [categories, products, cities, checkboxes, config] = await Promise.all([
+                    fetchSheet(GIDS.categories),
+                    fetchSheet(GIDS.products),
+                    fetchSheet(GIDS.cities),
+                    fetchSheet(GIDS.checkboxes),
+                    fetchSheet(GIDS.appConfig)
+                ]);
+
+                appState.categories = categories;
+                appState.products = products;
+                appState.cities = cities.filter(c => String(c.is_active).toUpperCase() === 'TRUE');
+                appState.checkboxes = checkboxes;
+                
+                appState.config = config.reduce((acc, item) => {
+                    acc[item.key] = item.value;
+                    return acc;
+                }, {});
+                
+                appState.activeCity = appState.config.default_city || (appState.cities[0]?.city_name) || 'Москва';
+
+                // Загружаем корзину
+                const savedCart = localStorage.getItem('food_cart');
+                if (savedCart) {
+                    appState.cart = JSON.parse(savedCart);
+                }
+
+                if (appState.categories.length > 0) {
+                    appState.activeCategory = appState.categories[0].id;
+                }
+
+                renderEverything();
+
+            } catch (error) {
+                console.error('Глобальная ошибка:', error);
+                document.getElementById('productsContainer').innerHTML = 
+                    '<div class="loading">❌ Ошибка загрузки<br><span style="font-size:14px;">Проверь интернет</span></div>';
+            }
+        }
+
+        // ========== ПОЛНЫЙ РЕНДЕР ==========
+        function renderEverything() {
+            renderCities();
+            renderCategories();
+            renderProducts();
+            renderCheckboxes();
+            updateHeader();
+            updateCartBadge();
+            updateOrderButtonColor();
+        }
+
+        // ========== ГОРОДА ==========
+        function renderCities() {
+            const container = document.getElementById('citiesContainer');
+            if (!appState.cities.length) return;
+            
+            container.innerHTML = appState.cities.map(city => `
+                <button class="city-btn ${appState.activeCity === city.city_name ? 'active' : ''}" 
+                        onclick="window.selectCity('${city.city_name}')">
+                    ${city.city_name}
+                </button>
+            `).join('');
+        }
+
+        // ========== КАТЕГОРИИ ==========
+        function renderCategories() {
+            const nav = document.getElementById('categoriesNav');
+            nav.innerHTML = appState.categories.map(cat => `
+                <button class="category-tab ${appState.activeCategory == cat.id ? 'active' : ''}"
+                        style="${appState.activeCategory == cat.id ? `background: ${cat.btn_color} !important;` : ''}"
+                        onclick="window.selectCategory(${cat.id})">
+                    ${cat.name}
+                </button>
+            `).join('');
+        }
+
+        // ========== ТОВАРЫ ==========
+        function renderProducts() {
+            const container = document.getElementById('productsContainer');
+            const filtered = appState.products.filter(p => String(p.category_id) === String(appState.activeCategory));
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="loading">🍽️ Тут пока пусто</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(product => {
+                const inCart = appState.cart.find(item => String(item.id) === String(product.id));
+                return `
+                <div class="product-card">
+                    <img src="${product.image_url}" class="product-image" alt="${product.name}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x300?text=Food'">
+                    <div class="product-info">
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-weight">${product.weight}</div>
+                        <div class="product-description">${product.description}</div>
+                        <div class="product-bottom">
+                            <span class="product-price">${Number(product.price).toLocaleString()} ₽</span>
+                            <button class="add-btn" 
+                                    onclick="window.addToCart(${product.id}, '${product.name.replace(/'/g, "\\'")}', ${product.price})"
+                                    style="background: ${getActiveCategoryColor()}">
+                                ${inCart ? inCart.quantity : '+'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `}).join('');
+        }
+
+        // ========== ЧЕКБОКСЫ ==========
+        function renderCheckboxes() {
+            const container = document.getElementById('checkboxesContainer');
+            if (!appState.checkboxes.length) return;
+            
+            container.innerHTML = appState.checkboxes.map((box, i) => `
+                <label class="checkbox-item">
+                    <input type="checkbox" id="cb_${i}" ${String(box.is_required).toUpperCase() === 'TRUE' ? 'required' : ''}>
+                    <span>${box.text}</span>
+                </label>
+            `).join('');
+        }
+
+        // ========== ШАПКА - ТВОИ ФОНЫ ==========
+        function updateHeader() {
+            const cat = appState.categories.find(c => String(c.id) === String(appState.activeCategory));
+            if (!cat) return;
+
+            const header = document.getElementById('header');
+            const welcomeText = document.getElementById('welcomeText');
+            const title = document.getElementById('welcomeTitle');
+            
+            // ТВОИ ФОНЫ из таблицы
+            if (cat.bg_image_url && cat.bg_image_url !== '#' && cat.bg_image_url !== '') {
+                header.style.backgroundImage = `url(${cat.bg_image_url})`;
+                header.style.backgroundColor = 'transparent';
+            } else {
+                header.style.backgroundImage = 'none';
+                header.style.backgroundColor = cat.bg_color || '#1a1a2e';
+            }
+            
+            welcomeText.textContent = cat.welcome_text || 'Добро пожаловать!';
+            title.textContent = appState.config.app_title || 'Fresh Food Market';
+        }
+
+        // ========== ЦВЕТ АКТИВНОЙ КАТЕГОРИИ ==========
+        function getActiveCategoryColor() {
+            const cat = appState.categories.find(c => String(c.id) === String(appState.activeCategory));
+            return cat ? cat.btn_color : '#e94560';
+        }
+
+        // ========== ЦВЕТ КНОПКИ ЗАКАЗА ==========
+        function updateOrderButtonColor() {
+            const btn = document.getElementById('orderBtn');
+            btn.style.background = getActiveCategoryColor();
+            btn.style.transition = 'background 0.5s ease';
+        }
+
+        // ========== КОРЗИНА - ПОЛНОСТЬЮ РАБОЧАЯ ==========
+        window.addToCart = function(id, name, price) {
+            const existing = appState.cart.find(item => String(item.id) === String(id));
+            if (existing) {
+                existing.quantity += 1;
+            } else {
+                appState.cart.push({ id, name, price, quantity: 1 });
+            }
+            saveCart();
+            renderProducts();
+            updateCartBadge();
+        };
+
+        function saveCart() {
+            localStorage.setItem('food_cart', JSON.stringify(appState.cart));
+        }
+
+        function updateCartBadge() {
+            const count = appState.cart.reduce((sum, item) => sum + item.quantity, 0);
+            const total = appState.cart.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0);
+            document.getElementById('cartCount').textContent = count;
+            document.getElementById('cartTotalDisplay').textContent = total.toLocaleString() + ' ₽';
+        }
+
+        // ========== ВЫБОР ГОРОДА ==========
+        window.selectCity = function(cityName) {
+            appState.activeCity = cityName;
+            renderCities();
+        };
+
+        // ========== ВЫБОР КАТЕГОРИИ ==========
+        window.selectCategory = function(categoryId) {
+            appState.activeCategory = categoryId;
+            renderCategories();
+            renderProducts();
+            updateHeader();
+            updateOrderButtonColor();
+        };
+
+        // ========== ОФОРМЛЕНИЕ ЗАКАЗА - ПОЛНОСТЬЮ РАБОЧЕЕ ==========
+        document.getElementById('orderBtn').addEventListener('click', function() {
+            // Проверяем обязательные чекбоксы
+            const requiredCheckboxes = document.querySelectorAll('.checkbox-item input[required]');
+            let allChecked = true;
+            
+            requiredCheckboxes.forEach(cb => {
+                if (!cb.checked) allChecked = false;
+            });
+
+            if (!allChecked) {
+                alert('⚠️ Пожалуйста, согласитесь с условиями доставки');
+                return;
+            }
+
+            // Проверяем корзину
+            if (appState.cart.length === 0) {
+                alert('🛒 Корзина пуста');
+                return;
+            }
+
+            const total = appState.cart.reduce((sum, item) => sum + (Number(item.price) * item.quantity), 0);
+            
+            // Формируем заказ
+            const orderData = {
+                action: 'order',
+                city: appState.activeCity,
+                items: appState.cart,
+                total: total,
+                timestamp: new Date().toISOString()
+            };
+
+            // Отправляем в Telegram если есть
+            if (tg) {
+                tg.sendData(JSON.stringify(orderData));
+            }
+            
+            // Показываем подтверждение
+            alert(`✅ ЗАКАЗ ОФОРМЛЕН!\n\nГород: ${appState.activeCity}\nТоваров: ${appState.cart.reduce((s,i) => s + i.quantity, 0)} шт\nСумма: ${total.toLocaleString()} ₽\n\nСпасибо за заказ!`);
+            
+            // Очищаем корзину
+            appState.cart = [];
+            saveCart();
+            updateCartBadge();
+            renderProducts();
+        });
+
+        // СТАРТ
+        initApp();
+    </script>
+</body>
+</html>
