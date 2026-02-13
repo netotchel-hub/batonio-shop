@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Батоньо - свежая выпечка</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Шапка с картинкой -->
+        <div class="header" id="store-header" style="background-image: url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400')">
+            <div class="header-title" id="store-title">Батоньо</div>
+        </div>
+
+        <!-- Информационный блок -->
+        <div class="info-block" id="info-text">
+            🥖 Свежая выпечка каждый день! Скидка 20% на пирожные
+        </div>
+
+        <!-- Категории -->
+        <div class="categories" id="categories-container"></div>
+
+        <!-- Каталог товаров -->
+        <div class="catalog" id="catalog"></div>
+
+        <!-- Блок доставки -->
+        <div class="delivery-block">
+            <h3>Доставка</h3>
+            
+            <!-- Города -->
+            <div class="cities" id="cities-container"></div>
+            
+            <!-- Адрес -->
+            <input type="text" id="street" placeholder="Улица">
+            <input type="text" id="house" placeholder="Дом">
+            <input type="text" id="apartment" placeholder="Квартира">
+            
+            <!-- Чекбоксы -->
+            <div class="checkboxes" id="checkboxes-container"></div>
+            
+            <!-- Комментарий -->
+            <textarea id="comment" placeholder="Комментарий к заказу" rows="2"></textarea>
+            
+            <!-- Запомнить меня -->
+            <div class="remember-me" id="remember-me-container"></div>
+            
+            <!-- Кнопка заказа -->
+            <button class="order-btn" id="order-btn">Оформить заказ</button>
+        </div>
+    </div>
+
+    <!-- Модальное окно оплаты -->
+    <div id="payment-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-modal">&times;</span>
+            <h2>Оплата</h2>
+            <p>Сумма: <span id="payment-amount">0</span> ₽</p>
+            <p>Заказ: <span id="order-number">#000001</span></p>
+            <button class="fake-pay-btn" id="fake-pay-btn">Оплатить</button>
+            <p style="font-size: 12px; color: gray; margin-top: 15px;">Демо-режим</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
