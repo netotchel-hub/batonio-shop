@@ -692,7 +692,9 @@ function isColorLight(hexColor) {
                 if (firstCategory) {
                     filterProducts(firstCategory.name);
                 }
-                
+                // Применяем цвета после загрузки
+setTimeout(applyCategoryColors, 500);
+setTimeout(applyCategoryColors, 1000);
             } catch (error) {
                 console.error('Ошибка загрузки:', error);
                 showToast('Ошибка загрузки данных');
