@@ -823,36 +823,100 @@
         }
         
         function filterProducts(categoryName) {
-            currentCategory = categoryName;
+    console.log('Фильтруем категорию:', categoryName);
+    currentCategory = categoryName;
+    
+    // Обновляем активную кнопку
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.textContent === categoryName) {
+            btn.classList.add('active');
+        }
+    });
+    
+    const category = categories.find(c => c.name === categoryName);
+    console.log('Найденная категория:', category);
+    console.log('Цвет кнопки из API:', category?.buttonColor);
+    
+    if (category) {
+        // Баннер
+        if (category.banner) {
+            document.getElementById('heroBanner').style.backgroundImage = `url('${category.banner}')`;
+        }
+        
+        // Фоновая картинка
+        if (category.bgImage) {
+            document.documentElement.style.setProperty('--bg-image', `url('${category.bgImage}')`);
+        }
+        
+        // ЦВЕТ КНОПОК - принудительно применяем
+        if (category.buttonColor) {
+            const buttonColor = category.buttonColor;
+            console.log('ПРИМЕНЯЕМ ЦВЕТ КНОПОК:', buttonColor);
             
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.textContent === categoryName) {
-                    btn.classList.add('active');
-                }
-            });
+            // Определяем цвет текста на кнопке
+            const buttonTextColor = getButtonTextColor(buttonColor);
             
-            const category = categories.find(c => c.name === categoryName);
-            if (category) {
-                if (category.banner) {
-                    document.getElementById('heroBanner').style.backgroundImage = `url('${category.banner}')`;
-                }
-                if (category.bgImage) {
-                    document.documentElement.style.setProperty('--bg-image', `url('${category.bgImage}')`);
-                }
-                
-                // Устанавливаем цвета кнопок и текста
-                document.documentElement.style.setProperty('--button-color', category.buttonColor);
-                document.documentElement.style.setProperty('--button-text-color', getButtonTextColor(category.buttonColor));
-                document.documentElement.style.setProperty('--text-color', category.textColor);
-                
-                // Устанавливаем цвет фона как запасной вариант
-                if (category.bgColor) {
-                    document.documentElement.style.setProperty('--bg-color-fallback', category.bgColor);
-                }
-            }
+            // Устанавливаем CSS переменные
+            document.documentElement.style.setProperty('--button-color', buttonColor);
+            document.documentElement.style.setProperty('--tg-theme-button-color', buttonColor);
+            document.documentElement.style.setProperty('--category-active-bg', buttonColor);
+            document.documentElement.style.setProperty('--button-text-color', buttonTextColor);
+            document.documentElement.style.setProperty('--tg-theme-button-text-color', buttonTextColor);
+            document.documentElement.style.setProperty('--category-active-text', buttonTextColor);
             
-            renderProducts();
+            // Принудительно обновляем стили кнопок
+            const style = document.createElement('style');
+            style.textContent = `
+                .category-btn.active {
+                    background-color: ${buttonColor} !important;
+                    color: ${buttonTextColor} !important;
+                }
+                .city-btn.active {
+                    background-color: ${buttonColor} !important;
+                    color: ${buttonTextColor} !important;
+                }
+                .quantity-btn {
+                    background-color: ${buttonColor} !important;
+                    color: ${buttonTextColor} !important;
+                }
+                .cart-fab {
+                    background-color: ${buttonColor} !important;
+                    color: ${buttonTextColor} !important;
+                }
+                .submit-btn {
+                    background-color: ${buttonColor} !important;
+                    color: ${buttonTextColor} !important;
+                }
+                .add-to-cart {
+                    background-color: ${buttonColor} !important;
+                    color: ${buttonTextColor} !important;
+                }
+                .product-price {
+                    color: ${buttonColor} !important;
+                }
+            `;
+            
+            // Удаляем старый style если есть
+            const oldStyle = document.getElementById('dynamic-colors');
+            if (oldStyle) oldStyle.remove();
+            
+            // Добавляем новый
+            style.id = 'dynamic-colors';
+            document.head.appendChild(style);
+        }
+        
+        // Цвет текста общий
+        if (category.textColor) {
+            document.documentElement.style.setProperty('--text-color', category.textColor);
+        } else if (category.buttonColor) {
+            const textColor = getContrastColor(category.buttonColor);
+            document.documentElement.style.setProperty('--text-color', textColor);
+        }
+    }
+    
+    renderProducts();
+        }
         }
         
         function toggleComposition(productId) {
