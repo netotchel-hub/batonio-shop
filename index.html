@@ -592,7 +592,24 @@
         let currentCategory = null;
         let selectedCity = null;
         let tg = window.Telegram?.WebApp;
-        
+        // Функция для определения светлый цвет или темный
+function isColorLight(hexColor) {
+    if (!hexColor) return true;
+    
+    // Убираем #
+    hexColor = hexColor.replace('#', '');
+    
+    // Конвертируем в RGB
+    const r = parseInt(hexColor.substr(0, 2), 16);
+    const g = parseInt(hexColor.substr(2, 2), 16);
+    const b = parseInt(hexColor.substr(4, 2), 16);
+    
+    // Вычисляем яркость
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    // Возвращаем true для светлых цветов (> 128)
+    return brightness > 128;
+}
         // Хранилище дневных лимитов
         let dailyOrders = JSON.parse(localStorage.getItem('dailyOrders')) || {};
         
@@ -935,7 +952,21 @@
             console.warn('⚠️ Цвет кнопки не найден в категории');
         }
     }
-    
+    // Функция для принудительного обновления цветов при загрузке
+function applyCategoryColors() {
+    console.log('🔄 Применяем цвета категории');
+    if (categories.length > 0 && currentCategory) {
+        const category = categories.find(c => c.name === currentCategory);
+        if (category && category.buttonColor) {
+            filterProducts(currentCategory);
+        }
+    } else if (categories.length > 0) {
+        const firstEnabled = categories.find(c => c.enabled);
+        if (firstEnabled) {
+            filterProducts(firstEnabled.name);
+        }
+    }
+}
     renderProducts();
 }
 
