@@ -822,8 +822,8 @@
             document.getElementById('deliveryCost').textContent = `Стоимость доставки: ${cost} ₽`;
         }
         
-        function filterProducts(categoryName) {
-    console.log('Фильтруем категорию:', categoryName);
+         function filterProducts(categoryName) {
+    console.log('🚀 Фильтруем категорию:', categoryName);
     currentCategory = categoryName;
     
     // Обновляем активную кнопку
@@ -835,87 +835,128 @@
     });
     
     const category = categories.find(c => c.name === categoryName);
-    console.log('Найденная категория:', category);
-    console.log('Цвет кнопки из API:', category?.buttonColor);
+    console.log('📦 Найденная категория:', category);
     
     if (category) {
-        // Баннер
+        // Применяем баннер
         if (category.banner) {
             document.getElementById('heroBanner').style.backgroundImage = `url('${category.banner}')`;
         }
         
-        // Фоновая картинка
+        // Применяем фоновую картинку
         if (category.bgImage) {
-            document.documentElement.style.setProperty('--bg-image', `url('${category.bgImage}')`);
+            document.body.style.backgroundImage = `url('${category.bgImage}')`;
         }
         
-        // ЦВЕТ КНОПОК - принудительно применяем
+        // ===== ГЛАВНОЕ: ПРИМЕНЯЕМ ЦВЕТ КНОПОК =====
         if (category.buttonColor) {
             const buttonColor = category.buttonColor;
-            console.log('ПРИМЕНЯЕМ ЦВЕТ КНОПОК:', buttonColor);
+            console.log('🎨 Применяем цвет кнопок:', buttonColor);
             
-            // Определяем цвет текста на кнопке
-            const buttonTextColor = getButtonTextColor(buttonColor);
+            // Определяем цвет текста (белый для темных фонов, черный для светлых)
+            const isLight = isColorLight(buttonColor);
+            const textColor = isLight ? '#000000' : '#ffffff';
+            console.log('📝 Цвет текста:', textColor, isLight ? '(светлый фон)' : '(темный фон)');
             
-            // Устанавливаем CSS переменные
-            document.documentElement.style.setProperty('--button-color', buttonColor);
-            document.documentElement.style.setProperty('--tg-theme-button-color', buttonColor);
-            document.documentElement.style.setProperty('--category-active-bg', buttonColor);
-            document.documentElement.style.setProperty('--button-text-color', buttonTextColor);
-            document.documentElement.style.setProperty('--tg-theme-button-text-color', buttonTextColor);
-            document.documentElement.style.setProperty('--category-active-text', buttonTextColor);
-            
-            // Принудительно обновляем стили кнопок
-            const style = document.createElement('style');
-            style.textContent = `
+            // СОЗДАЕМ СТИЛИ ПРЯМО СЕЙЧАС (самый надежный способ)
+            const styleElement = document.getElementById('dynamic-button-styles') || document.createElement('style');
+            styleElement.id = 'dynamic-button-styles';
+            styleElement.textContent = `
+                /* Все кнопки с цветом */
                 .category-btn.active {
                     background-color: ${buttonColor} !important;
-                    color: ${buttonTextColor} !important;
+                    color: ${textColor} !important;
+                    border-color: ${buttonColor} !important;
                 }
+                
                 .city-btn.active {
                     background-color: ${buttonColor} !important;
-                    color: ${buttonTextColor} !important;
+                    color: ${textColor} !important;
+                    border-color: ${buttonColor} !important;
                 }
+                
                 .quantity-btn {
                     background-color: ${buttonColor} !important;
-                    color: ${buttonTextColor} !important;
+                    color: ${textColor} !important;
                 }
+                
+                .quantity-btn.minus {
+                    background-color: #f44336 !important;
+                    color: white !important;
+                }
+                
                 .cart-fab {
                     background-color: ${buttonColor} !important;
-                    color: ${buttonTextColor} !important;
+                    color: ${textColor} !important;
                 }
+                
                 .submit-btn {
                     background-color: ${buttonColor} !important;
-                    color: ${buttonTextColor} !important;
+                    color: ${textColor} !important;
                 }
+                
                 .add-to-cart {
                     background-color: ${buttonColor} !important;
-                    color: ${buttonTextColor} !important;
+                    color: ${textColor} !important;
                 }
+                
                 .product-price {
                     color: ${buttonColor} !important;
                 }
+                
+                /* Кнопки категорий (неактивные) */
+                .category-btn {
+                    background-color: rgba(255,255,255,0.2);
+                    color: ${textColor};
+                    border: 1px solid ${buttonColor}40;
+                }
             `;
             
-            // Удаляем старый style если есть
-            const oldStyle = document.getElementById('dynamic-colors');
-            if (oldStyle) oldStyle.remove();
+            // Добавляем или обновляем стили
+            if (!document.getElementById('dynamic-button-styles')) {
+                document.head.appendChild(styleElement);
+            }
             
-            // Добавляем новый
-            style.id = 'dynamic-colors';
-            document.head.appendChild(style);
-        }
-        
-        // Цвет текста общий
-        if (category.textColor) {
-            document.documentElement.style.setProperty('--text-color', category.textColor);
-        } else if (category.buttonColor) {
-            const textColor = getContrastColor(category.buttonColor);
-            document.documentElement.style.setProperty('--text-color', textColor);
+            // Дополнительно устанавливаем CSS переменные
+            document.documentElement.style.setProperty('--button-color', buttonColor);
+            document.documentElement.style.setProperty('--button-text-color', textColor);
+            
+            // Принудительно обновляем все кнопки
+            document.querySelectorAll('.category-btn.active').forEach(btn => {
+                btn.style.backgroundColor = buttonColor;
+                btn.style.color = textColor;
+            });
+            
+            document.querySelectorAll('.city-btn.active').forEach(btn => {
+                btn.style.backgroundColor = buttonColor;
+                btn.style.color = textColor;
+            });
+        } else {
+            console.warn('⚠️ Цвет кнопки не найден в категории');
         }
     }
     
     renderProducts();
+}
+
+// Функция для определения светлый цвет или темный
+function isColorLight(hexColor) {
+    if (!hexColor) return true;
+    
+    // Убираем #
+    hexColor = hexColor.replace('#', '');
+    
+    // Конвертируем в RGB
+    const r = parseInt(hexColor.substr(0, 2), 16);
+    const g = parseInt(hexColor.substr(2, 2), 16);
+    const b = parseInt(hexColor.substr(4, 2), 16);
+    
+    // Вычисляем яркость
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    
+    // Возвращаем true для светлых цветов (> 128)
+    return brightness > 128;
+}
         }
         
         function toggleComposition(productId) {
