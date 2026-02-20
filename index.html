@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <button onclick="testOrder()">Тестовый заказ пиццы</button>
+    <button onclick="testOrder2()">Тестовый заказ обычный</button>
+    
+    <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxzdwm2GYu61dn3wDucNcLqpD3c3XnE78f7Xae8yqi-BQpYw1t9Zp3J6GWHTr3t1Cd06g/exec';
+    const BOT_TOKEN = '8349205890:AAFVqI8UACzi5WRI0e64_1IP_LrnN9boUio';
+    
+    function testOrder() {
+        const data = {
+            name: 'Тестовый пользователь',
+            phone: '+7 999 123-45-67',
+            address: 'Тестовый адрес',
+            items: 'Пицца 4 сыра x2',
+            totalItems: 2,
+            total: 900,
+            userId: '12345',
+            category: 'Пицца'
+        };
+        
+        fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(data)
+        }).then(() => {
+            alert('Заказ отправлен');
+        });
+    }
+    
+    function testOrder2() {
+        const data = {
+            name: 'Тестовый пользователь',
+            phone: '+7 999 123-45-67',
+            address: 'Тестовый адрес',
+            items: 'Батон x2',
+            totalItems: 2,
+            total: 170,
+            userId: '12345',
+            category: 'Выпечка'
+        };
+        
+        fetch(API_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify(data)
+        }).then(() => {
+            alert('Заказ отправлен');
+        });
+    }
+    </script>
+</body>
+</html>
