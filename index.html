@@ -1508,72 +1508,77 @@
         }
         
         async function renderProducts() {
-            const container = document.getElementById('products');
-            if (!container) return;
-            
-            if (!products || products.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:20px;">Товары не найдены</div>';
-                return;
-            }
-            
-            const filtered = products.filter(p => p.category === currentCategory);
-            
-            if (filtered.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:20px;">В этой категории нет товаров</div>';
-                return;
-            }
-            
-            const cart = getCart();
-            
-            let html = '';
-            for (const product of filtered) {
-                const cartItem = cart.find(i => i.id === product.id);
-                const quantity = cartItem ? cartItem.quantity : 0;
-                
-                let limitHtml = '';
-                let canAdd = true;
-                
-                if (product.dailyLimit > 0 && currentCategory !== 'Пицца') {
-                    const soldToday = todaySalesCache[product.name] || 0;
-                    const remaining = product.dailyLimit - soldToday - quantity;
-                    canAdd = remaining > 0;
-                    limitHtml = `<div class="daily-limit-info" id="limit-${product.id}">📅 Осталось: ${Math.max(0, remaining)} шт</div>`;
-                }
-                
-                let priceHtml = '';
-                if (product.discountPrice > 0) {
-                    priceHtml = `
-                        <div class="price-container">
-                            <span class="old-price">${product.price} ₽</span>
-                            <span class="product-price discounted">${product.discountPrice} ₽</span>
-                        </div>
-                    `;
-                } else {
-                    priceHtml = `<div class="product-price">${product.price} ₽</div>`;
-                }
-                
-                html += `
-                    <div class="product-card" id="product-${product.id}">
-                        <img src="${product.image}" class="product-image" alt="${product.name}">
-                        <div class="product-info">
-                            <div class="product-title">${product.name}</div>
-                            <div class="product-weight">⚖️ ${product.weight}</div>
-                            ${priceHtml}
-                            ${limitHtml}
-                            <div class="product-actions">
-                                <div class="quantity-control">
-                                    <button class="quantity-btn minus" onclick="updateQuantity('${product.id}', -1)" ${quantity === 0 ? 'disabled' : ''}>−</button>
-                                    <span class="quantity-value" id="qty-${product.id}">${quantity}</span>
-                                    <button class="quantity-btn plus" onclick="updateQuantity('${product.id}', 1)" ${!canAdd ? 'disabled' : ''}>+</button>
-                                </div>
-                            </div>
+    const container = document.getElementById('products');
+    if (!container) return;
+    
+    if (!products || products.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px;">Товары не найдены</div>';
+        return;
+    }
+    
+    console.log('Все товары:', products);
+    console.log('Текущая категория:', currentCategory);
+    
+    const filtered = products.filter(p => p.category === currentCategory);
+    console.log('Отфильтрованные товары:', filtered);
+    
+    if (filtered.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px;">В этой категории нет товаров</div>';
+        return;
+    }
+    
+    const cart = getCart();
+    
+    let html = '';
+    for (const product of filtered) {
+        const cartItem = cart.find(i => i.id === product.id);
+        const quantity = cartItem ? cartItem.quantity : 0;
+        
+        let limitHtml = '';
+        let canAdd = true;
+        
+        if (product.dailyLimit > 0 && currentCategory !== 'Пицца') {
+            const soldToday = todaySalesCache[product.name] || 0;
+            const remaining = product.dailyLimit - soldToday - quantity;
+            canAdd = remaining > 0;
+            limitHtml = `<div class="daily-limit-info" id="limit-${product.id}">📅 Осталось: ${Math.max(0, remaining)} шт</div>`;
+        }
+        
+        let priceHtml = '';
+        if (product.discountPrice > 0) {
+            priceHtml = `
+                <div class="price-container">
+                    <span class="old-price">${product.price} ₽</span>
+                    <span class="product-price discounted">${product.discountPrice} ₽</span>
+                </div>
+            `;
+        } else {
+            priceHtml = `<div class="product-price">${product.price} ₽</div>`;
+        }
+        
+        html += `
+            <div class="product-card" id="product-${product.id}">
+                <img src="${product.image}" class="product-image" alt="${product.name}" 
+                     onerror="this.src='https://via.placeholder.com/300x200?text=No+Image'">
+                <div class="product-info">
+                    <div class="product-title">${product.name}</div>
+                    <div class="product-weight">⚖️ ${product.weight}</div>
+                    ${priceHtml}
+                    ${limitHtml}
+                    <div class="product-actions">
+                        <div class="quantity-control">
+                            <button class="quantity-btn minus" onclick="updateQuantity('${product.id}', -1)" ${quantity === 0 ? 'disabled' : ''}>−</button>
+                            <span class="quantity-value" id="qty-${product.id}">${quantity}</span>
+                            <button class="quantity-btn plus" onclick="updateQuantity('${product.id}', 1)" ${!canAdd ? 'disabled' : ''}>+</button>
                         </div>
                     </div>
-                `;
-            }
-            
-            container.innerHTML = html;
-        }
+                </div>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
         
         function updateQuantity(productId, delta) {
             const product = products.find(p => p.id === productId);
