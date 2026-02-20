@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тест отправки</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <button onclick="testPizzaOrder()">🍕 Тестовый заказ пиццы</button>
+    <br><br>
+    <button onclick="testRegularOrder()">🛒 Тестовый заказ обычный</button>
+    
+    <script>
+    const BOT_TOKEN = '8349205890:AAFVqI8UACzi5WRI0e64_1IP_LrnN9boUio';
+    const CHAT_ID = '-5121850609';
+    const PIZZA_CHAT_ID = '-1003873542156';
+    
+    async function testPizzaOrder() {
+        const message = `🍕 ТЕСТОВЫЙ ЗАКАЗ ПИЦЦЫ
+        
+👤 Тестовый пользователь
+📞 +7 999 123-45-67
+📍 Тестовый адрес
+
+🛒 ЗАКАЗАНО:
+• Пицца 4 сыра x2 — 900 ₽
+
+💰 ИТОГО: 900 ₽
+📅 ${new Date().toLocaleString()}`;
+
+        try {
+            // Отправляем напрямую в Telegram API
+            const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: PIZZA_CHAT_ID,
+                    text: message,
+                    parse_mode: 'HTML'
+                })
+            });
+            
+            const result = await response.json();
+            console.log('Ответ от Telegram:', result);
+            
+            if (result.ok) {
+                alert('✅ Уведомление отправлено в чат пиццы!');
+            } else {
+                alert('❌ Ошибка: ' + result.description);
+            }
+        } catch (error) {
+            alert('❌ Ошибка: ' + error.message);
+        }
+    }
+    
+    async function testRegularOrder() {
+        const message = `🛍 ТЕСТОВЫЙ ЗАКАЗ
+        
+👤 Тестовый пользователь
+📞 +7 999 123-45-67
+📍 Тестовый адрес
+
+🛒 ЗАКАЗАНО:
+• Батон x2 — 170 ₽
+
+💰 ИТОГО: 170 ₽
+📅 ${new Date().toLocaleString()}`;
+
+        try {
+            // Отправляем напрямую в Telegram API
+            const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: message,
+                    parse_mode: 'HTML'
+                })
+            });
+            
+            const result = await response.json();
+            console.log('Ответ от Telegram:', result);
+            
+            if (result.ok) {
+                alert('✅ Уведомление отправлено в обычный чат!');
+            } else {
+                alert('❌ Ошибка: ' + result.description);
+            }
+        } catch (error) {
+            alert('❌ Ошибка: ' + error.message);
+        }
+    }
+    </script>
+</body>
+</html>
