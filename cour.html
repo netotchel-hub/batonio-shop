@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BATONIO - Курьер</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+        
+        /* Анимация загрузки */
+        .loader-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 30000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(3px);
+        }
+        
+        .loader-overlay.active {
+            display: flex;
+        }
+        
+        .loader-content {
+            text-align: center;
+        }
+        
+        .loader-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #0088cc;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loader-text {
+            color: #333;
+            font-size: 18px;
+            font-weight: 500;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        /* Экран входа */
+        .login-screen {
+            max-width: 400px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: opacity 0.3s ease;
+        }
+        
+        .login-screen.loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        
+        .login-logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+        }
+        
+        .login-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .login-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .login-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .login-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 500;
+            transition: border-color 0.3s;
+        }
+        
+        .login-input:focus {
+            border-color: #0088cc;
+            outline: none;
+        }
+        
+        .login-btn {
+            width: 100%;
+            padding: 15px;
+            background: #0088cc;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .login-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+        
+        .login-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .login-btn.loading {
+            color: transparent;
+        }
+        
+        .login-btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            margin: -10px 0 0 -10px;
+            border: 2px solid white;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .login-error {
+            color: #f44336;
+            font-size: 14px;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+        
+        /* Основной экран */
+        .main-screen {
+            display: none;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .main-screen.active {
+            display: block;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            animation: slideDown 0.3s ease;
+        }
+        
+        .header-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .header-courier {
+            background: #0088cc;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 30px;
+            font-weight: 500;
+            animation: glow 2s ease-in-out infinite;
+        }
+        
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 136, 204, 0.4); }
+            50% { box-shadow: 0 0 10px 5px rgba(0, 136, 204, 0.2); }
+        }
+        
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #999;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0 10px;
+            transition: color 0.3s, transform 0.2s;
+        }
+        
+        .logout-btn:hover {
+            color: #f44336;
+            transform: scale(1.1);
+        }
+        
+        /* Категории - только две кнопки */
+        .categories {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            animation: slideDown 0.3s ease 0.1s both;
+        }
+        
+        .category-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: #f0f0f0;
+            color: #333;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .category-btn:hover {
+            transform: scale(1.02);
+        }
+        
+        .category-btn.active {
+            background: #0088cc;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 136, 204, 0.3);
+        }
+        
+        .category-btn.pizza.active {
+            background: #ff6b6b;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+        }
+        
+        /* Список заказов */
+        .orders-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .order-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border-left: 4px solid #0088cc;
+            animation: slideInRight 0.3s ease;
+            transition: all 0.3s ease;
+        }
+        
+        .order-card.pizza {
+            border-left-color: #ff6b6b;
+        }
+        
+        .order-card.delivered {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-left-color: #4caf50;
+            cursor: pointer;
+        }
+        
+        .order-card.delivered:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .order-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .delivered-badge {
+            background: #4caf50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            animation: badgePop 0.3s ease;
+        }
+        
+        @keyframes badgePop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .delivered-badge::before {
+            content: '✅';
+            font-size: 16px;
+        }
+        
+        .order-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.2s ease;
+        }
+        
+        .order-card.delivered .order-content {
+            max-height: 0;
+            opacity: 0;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .order-address {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .order-address::before {
+            content: '📍';
+            font-size: 18px;
+        }
+        
+        .order-phone {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .order-phone::before {
+            content: '📞';
+            font-size: 18px;
+        }
+        
+        .order-items {
+            font-size: 15px;
+            color: #666;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            line-height: 1.6;
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+        }
+        
+        .order-actions {
+            display: flex;
+            gap: 10px;
+            transition: opacity 0.3s ease;
+        }
+        
+        .order-card.delivered .order-actions {
+            display: none;
+        }
+        
+        .deliver-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #4caf50;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .deliver-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+        
+        .problem-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: #f44336;
+            color: white;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .problem-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
+        }
+        
+        .deliver-btn:disabled,
+        .problem-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: white;
+            border-radius: 15px;
+            color: #999;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        /* Модальные окна */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 20000;
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.active {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 350px;
+            padding: 25px;
+            text-align: center;
+            animation: modalPop 0.3s ease;
+        }
+        
+        @keyframes modalPop {
+            0% {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            animation: bounce 0.5s ease;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .modal-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            resize: vertical;
+            min-height: 80px;
+            transition: border-color 0.3s;
+        }
+        
+        .modal-input:focus {
+            border-color: #0088cc;
+            outline: none;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .modal-btn:hover {
+            transform: scale(1.02);
+        }
+        
+        .modal-btn.confirm {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .modal-btn.cancel {
+            background: #f0f0f0;
+            color: #666;
+        }
+        
+        .modal-btn.problem {
+            background: #f44336;
+            color: white;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 20001;
+            animation: slideUpToast 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        @keyframes slideUpToast {
+            from {
+                opacity: 0;
+                transform: translate(-50%, 20px);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .refresh-indicator {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #999;
+            animation: pulse 2s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Анимация загрузки -->
+    <div class="loader-overlay" id="loaderOverlay">
+        <div class="loader-content">
+            <div class="loader-spinner"></div>
+            <div class="loader-text" id="loaderText">Загрузка...</div>
+        </div>
+    </div>
+
+    <!-- Экран входа -->
+    <div class="login-screen" id="loginScreen">
+        <div class="login-logo">
+            <img src="https://i.ibb.co/qFyjcZ5D/IMG-20260215-141126-1.png" alt="BATONIO">
+        </div>
+        <div class="login-title">BATONIO</div>
+        <div class="login-subtitle">Вход для курьеров</div>
+        
+        <input type="text" class="login-input" id="courierCode" placeholder="Ваш код" autocomplete="off">
+        <button class="login-btn" id="loginBtn">Войти</button>
+        <div class="login-error" id="loginError"></div>
+    </div>
+    
+    <!-- Основной экран -->
+    <div class="main-screen" id="mainScreen">
+        <div class="header">
+            <button class="logout-btn" id="logoutBtn">←</button>
+            <div class="header-title">Заказы на сегодня</div>
+            <div class="header-courier" id="courierName"></div>
+        </div>
+        
+        <!-- Только две кнопки -->
+        <div class="categories">
+            <button class="category-btn active" id="categoryRegular">Обычные</button>
+            <button class="category-btn pizza" id="categoryPizza">Пицца</button>
+        </div>
+        
+        <div class="orders-list" id="ordersList"></div>
+        <div class="refresh-indicator" id="refreshIndicator">Обновление каждые 30 секунд</div>
+    </div>
+    
+    <!-- Модальное окно подтверждения доставки -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-icon">✅</div>
+            <div class="modal-title">Подтвердите доставку</div>
+            <div class="modal-text" id="confirmText">Заказ #<span id="confirmOrderId"></span> доставлен?</div>
+            <div class="modal-buttons">
+                <button class="modal-btn confirm" id="confirmYes">Да, доставлен</button>
+                <button class="modal-btn cancel" id="confirmNo">Отмена</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Модальное окно проблемы -->
+    <div class="modal" id="problemModal">
+        <div class="modal-content">
+            <div class="modal-icon">⚠️</div>
+            <div class="modal-title">Опишите проблему</div>
+            <textarea class="modal-input" id="problemDescription" placeholder="Что случилось? (клиента нет, адрес не найден, etc.)"></textarea>
+            <div class="modal-buttons">
+                <button class="modal-btn problem" id="problemSend">Отправить</button>
+                <button class="modal-btn cancel" id="problemCancel">Отмена</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbz1gM7JTc6VgP4ok7WQ9ip7B6GQuQF-HntPkPFrETZDcWGeCc5Pan2sZPqSuzJlsuvd/exec';
+        
+        let currentCourier = null;
+        let currentCategory = 'regular';
+        let allOrders = [];
+        let selectedOrderId = null;
+        let selectedCategory = null;
+        
+        // Управление загрузкой
+        function showLoader(text = 'Загрузка...') {
+            document.getElementById('loaderText').textContent = text;
+            document.getElementById('loaderOverlay').classList.add('active');
+        }
+        
+        function hideLoader() {
+            document.getElementById('loaderOverlay').classList.remove('active');
+        }
+        
+        // Получаем текущее московское время
+        function getMoscowTime() {
+            const now = new Date();
+            return new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Moscow' }));
+        }
+        
+        // Форматируем время для отображения
+        function formatTime(date) {
+            return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+        }
+        
+        // Проверяем сохранённый вход
+        const savedCode = localStorage.getItem('courierCode');
+        if (savedCode) {
+            loginWithCode(savedCode, true);
+        }
+        
+        // Вход по коду
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            const code = document.getElementById('courierCode').value.trim();
+            loginWithCode(code);
+        });
+        
+        document.getElementById('courierCode').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('loginBtn').click();
+            }
+        });
+        
+        function loginWithCode(code, silent = false) {
+            if (!code) {
+                showError('Введите код');
+                return;
+            }
+            
+            // Показываем загрузку
+            showLoader('Вход в систему...');
+            document.getElementById('loginBtn').disabled = true;
+            document.getElementById('loginBtn').classList.add('loading');
+            document.getElementById('loginScreen').classList.add('loading');
+            
+            const callbackName = 'jsonp_login_' + Date.now();
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                
+                // Скрываем загрузку
+                hideLoader();
+                document.getElementById('loginBtn').disabled = false;
+                document.getElementById('loginBtn').classList.remove('loading');
+                document.getElementById('loginScreen').classList.remove('loading');
+                
+                if (data.success && data.courier) {
+                    currentCourier = data.courier;
+                    localStorage.setItem('courierCode', code);
+                    
+                    // Плавный переход
+                    document.getElementById('loginScreen').style.opacity = '0';
+                    setTimeout(() => {
+                        document.getElementById('loginScreen').style.display = 'none';
+                        document.getElementById('mainScreen').classList.add('active');
+                        document.getElementById('courierName').textContent = data.courier.name;
+                        document.getElementById('loginScreen').style.opacity = '1';
+                        loadOrders();
+                    }, 300);
+                } else {
+                    showError('Неверный код или курьер не активен');
+                }
+            };
+            
+            const script = document.createElement('script');
+            script.src = `${API_URL}?callback=${callbackName}&action=checkCourier&code=${encodeURIComponent(code)}`;
+            document.head.appendChild(script);
+        }
+        
+        // Выход
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            showLoader('Выход...');
+            
+            setTimeout(() => {
+                currentCourier = null;
+                localStorage.removeItem('courierCode');
+                
+                document.getElementById('mainScreen').classList.remove('active');
+                document.getElementById('loginScreen').style.display = 'block';
+                document.getElementById('loginScreen').style.opacity = '1';
+                document.getElementById('courierCode').value = '';
+                
+                hideLoader();
+            }, 300);
+        });
+        
+        // Переключение категорий (только две)
+        document.getElementById('categoryRegular').addEventListener('click', () => {
+            currentCategory = 'regular';
+            document.getElementById('categoryRegular').classList.add('active');
+            document.getElementById('categoryPizza').classList.remove('active');
+            renderOrders();
+        });
+        
+        document.getElementById('categoryPizza').addEventListener('click', () => {
+            currentCategory = 'pizza';
+            document.getElementById('categoryPizza').classList.add('active');
+            document.getElementById('categoryRegular').classList.remove('active');
+            renderOrders();
+        });
+        
+        // Загрузка заказов
+        function loadOrders() {
+            const callbackName = 'jsonp_orders_' + Date.now();
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                allOrders = data.orders || [];
+                renderOrders();
+            };
+            
+            const script = document.createElement('script');
+            script.src = `${API_URL}?callback=${callbackName}&action=getAllTodayOrders`;
+            document.head.appendChild(script);
+        }
+        
+        // Открыть окно подтверждения доставки
+        function openConfirmModal(orderId, category) {
+            selectedOrderId = orderId;
+            selectedCategory = category;
+            document.getElementById('confirmOrderId').textContent = orderId;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+        
+        // Закрыть окно подтверждения
+        function closeConfirmModal() {
+            document.getElementById('confirmModal').classList.remove('active');
+            selectedOrderId = null;
+            selectedCategory = null;
+        }
+        
+        // Открыть окно проблемы
+        function openProblemModal(orderId, category) {
+            selectedOrderId = orderId;
+            selectedCategory = category;
+            document.getElementById('problemDescription').value = '';
+            document.getElementById('problemModal').classList.add('active');
+        }
+        
+        // Закрыть окно проблемы
+        function closeProblemModal() {
+            document.getElementById('problemModal').classList.remove('active');
+            document.getElementById('problemDescription').value = '';
+            selectedOrderId = null;
+            selectedCategory = null;
+        }
+        
+        // Отметить доставку
+        function markDelivered() {
+            if (!selectedOrderId || !selectedCategory) return;
+            
+            showLoader('Отправка...');
+            
+            const callbackName = 'jsonp_deliver_' + Date.now();
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                hideLoader();
+                closeConfirmModal();
+                if (data.success) {
+                    showToast('✅ Заказ отмечен как доставлен');
+                    loadOrders();
+                } else {
+                    showToast('❌ Ошибка: ' + data.error);
+                }
+            };
+            
+            const script = document.createElement('script');
+            script.src = `${API_URL}?callback=${callbackName}&action=markDelivered&orderId=${selectedOrderId}&category=${encodeURIComponent(selectedCategory)}&courier=${encodeURIComponent(currentCourier.code)}`;
+            document.head.appendChild(script);
+        }
+        
+        // Отправить проблему
+        function sendProblem() {
+            const description = document.getElementById('problemDescription').value.trim();
+            if (!description) {
+                showToast('Опишите проблему');
+                return;
+            }
+            
+            if (!selectedOrderId || !selectedCategory) return;
+            
+            showLoader('Отправка...');
+            
+            const callbackName = 'jsonp_problem_' + Date.now();
+            window[callbackName] = function(data) {
+                delete window[callbackName];
+                hideLoader();
+                closeProblemModal();
+                if (data.success) {
+                    showToast('⚠️ Проблема зарегистрирована');
+                    loadOrders();
+                } else {
+                    showToast('❌ Ошибка: ' + data.error);
+                }
+            };
+            
+            const script = document.createElement('script');
+            script.src = `${API_URL}?callback=${callbackName}&action=reportProblem&orderId=${selectedOrderId}&category=${encodeURIComponent(selectedCategory)}&courier=${encodeURIComponent(currentCourier.code)}&description=${encodeURIComponent(description)}`;
+            document.head.appendChild(script);
+        }
+        
+        // Развернуть/свернуть доставленный заказ
+        function toggleDeliveredOrder(orderId) {
+            const orderCard = document.getElementById(`order-${orderId}`);
+            if (orderCard) {
+                orderCard.classList.toggle('expanded');
+            }
+        }
+        
+        // Обработчики модальных окон
+        document.getElementById('confirmYes').addEventListener('click', markDelivered);
+        document.getElementById('confirmNo').addEventListener('click', closeConfirmModal);
+        document.getElementById('problemSend').addEventListener('click', sendProblem);
+        document.getElementById('problemCancel').addEventListener('click', closeProblemModal);
+        
+        // Закрытие по клику на фон
+        document.getElementById('confirmModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeConfirmModal();
+        });
+        
+        document.getElementById('problemModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeProblemModal();
+        });
+        
+        // Отрисовка заказов
+        function renderOrders() {
+            const container = document.getElementById('ordersList');
+            
+            // Фильтруем по категории
+            let filtered = allOrders.filter(o => o.category === (currentCategory === 'regular' ? 'Обычные' : 'Пицца'));
+            
+            // Сортируем: сначала не доставленные, потом доставленные
+            filtered.sort((a, b) => {
+                if (a.status === 'Доставлено' && b.status !== 'Доставлено') return 1;
+                if (a.status !== 'Доставлено' && b.status === 'Доставлено') return -1;
+                return 0;
+            });
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-state">📦 Заказов нет</div>';
+                return;
+            }
+            
+            let html = '';
+            filtered.forEach(order => {
+                const isPizza = order.category === 'Пицца';
+                const isDelivered = order.status === 'Доставлено';
+                
+                // Форматируем товары: вместо "Батон x3" -> "Батон - 3"
+                const itemsFormatted = order.items.split(', ').map(item => {
+                    const match = item.match(/(.+?)\sx(\d+)/);
+                    if (match) {
+                        return `<div class="order-item">${match[1].trim()} - ${match[2]}</div>`;
+                    }
+                    return `<div class="order-item">${item}</div>`;
+                }).join('');
+                
+                html += `
+                    <div class="order-card ${isPizza ? 'pizza' : ''} ${isDelivered ? 'delivered' : ''}" id="order-${order.id}" onclick="${isDelivered ? `this.classList.toggle('expanded')` : ''}">
+                        <div class="order-header">
+                            <span class="order-number">Заказ #${order.id}</span>
+                            ${isDelivered ? '<span class="delivered-badge">Доставлен</span>' : ''}
+                        </div>
+                        <div class="order-content">
+                            <div class="order-address">${order.address}</div>
+                            <div class="order-phone">${order.phone || 'Телефон не указан'}</div>
+                            <div class="order-items">
+                                ${itemsFormatted}
+                            </div>
+                            ${!isDelivered ? `
+                                <div class="order-actions">
+                                    <button class="deliver-btn" onclick="event.stopPropagation(); openConfirmModal('${order.id}', '${order.category}')">
+                                        ✅ Доставил
+                                    </button>
+                                    <button class="problem-btn" onclick="event.stopPropagation(); openProblemModal('${order.id}', '${order.category}')">
+                                        ⚠️ Проблема
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function showToast(msg) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = msg;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+        
+        function showError(msg) {
+            document.getElementById('loginError').textContent = msg;
+        }
+        
+        // Автообновление каждые 30 секунд с индикацией
+        setInterval(() => {
+            if (currentCourier) {
+                const indicator = document.getElementById('refreshIndicator');
+                indicator.style.opacity = '0.5';
+                loadOrders();
+                setTimeout(() => {
+                    indicator.style.opacity = '1';
+                }, 500);
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
